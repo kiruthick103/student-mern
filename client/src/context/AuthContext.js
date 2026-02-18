@@ -8,31 +8,40 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    const savedUser = localStorage.getItem('user');
-    
-    if (token && savedUser) {
-      setUser(JSON.parse(savedUser));
-      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-    }
-    setLoading(false);
+    const initAuth = async () => {
+      const token = localStorage.getItem('token');
+      const savedUser = localStorage.getItem('user');
+
+      if (token && savedUser) {
+        axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+        try {
+          // Verify token with backend if possible, or just trust localStorage for speed
+          setUser(JSON.parse(savedUser));
+        } catch (e) {
+          localStorage.removeItem('token');
+          localStorage.removeItem('user');
+        }
+      }
+      setLoading(false);
+    };
+    initAuth();
   }, []);
 
   const login = async (email, password) => {
     try {
       const response = await axios.post('/api/auth/login', { email, password });
       const { token, user } = response.data;
-      
+
       localStorage.setItem('token', token);
       localStorage.setItem('user', JSON.stringify(user));
       axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-      
+
       setUser(user);
       return { success: true, user };
     } catch (error) {
-      return { 
-        success: false, 
-        message: error.response?.data?.message || 'Login failed' 
+      return {
+        success: false,
+        message: error.response?.data?.message || 'Login failed'
       };
     }
   };

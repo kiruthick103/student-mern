@@ -1,0 +1,162 @@
+{
+  "users": [
+    {
+      "_id": "t1",
+      "email": "kiruthick3238q@gmail.com",
+      "password": "$2b$10$sQgtuhJa722PRvipOwADdOnrA/1QsQ38j9GiQqm850jIInJcNmKcG",
+      "role": "teacher",
+      "fullName": "Narendran M (Teacher)",
+      "isActive": true
+    },
+    {
+      "_id": "s1",
+      "email": "student@example.com",
+      "password": "$2b$10$OiXBuPczVxf8xuuY4copQ.L6kJgPS2FsZ8J4s0vblKMd7WgQ21sfm",
+      "role": "student",
+      "fullName": "John Doe (Student)",
+      "isActive": true
+    },
+    {
+      "_id": "s1771434684915",
+      "email": "kevin@gmail.com",
+      "password": "$2b$10$6nVaNCTu9J/KXL04Vbky8u5Bvp.V.u034SlklpbsNRNm6s.nHDDK6",
+      "role": "student",
+      "fullName": "kevinbharath",
+      "isActive": true
+    }
+  ],
+  "studentProfiles": [
+    {
+      "_id": "p1",
+      "user": "s1",
+      "rollNumber": "STU001",
+      "class": "Year 1",
+      "section": "A",
+      "subjects": []
+    },
+    {
+      "_id": "p1771434685072",
+      "user": "s1771434684915",
+      "rollNumber": "262",
+      "class": "cse",
+      "section": "A",
+      "subjects": []
+    }
+  ],
+  "subjects": [
+    {
+      "_id": "sub1",
+      "name": "Mathematics",
+      "code": "MATH101",
+      "credits": 4
+    },
+    {
+      "_id": "sub2",
+      "name": "Science",
+      "code": "SCI101",
+      "credits": 3
+    },
+    {
+      "name": "EG",
+      "code": "GE23111",
+      "credits": "3",
+      "description": "Engineernig graphics",
+      "_id": "1771445178798hk07x830m"
+    }
+  ],
+  "attendance": [
+    {
+      "student": "s1",
+      "date": "2026-02-18",
+      "status": "present",
+      "subject": "sub1",
+      "_id": "1771445271334sn6b745bq",
+      "markedBy": "t1"
+    },
+    {
+      "student": "s1",
+      "date": "2026-02-18",
+      "status": "present",
+      "subject": "sub1",
+      "_id": "1771445273391utldkhjej"
+    },
+    {
+      "student": "s1771434684915",
+      "date": "2026-02-18",
+      "status": "present",
+      "subject": "sub1",
+      "_id": "1771445275537cwxwbhpdq",
+      "markedBy": "t1"
+    }
+  ],
+  "marks": [],
+  "assignments": [
+    {
+      "_id": "a1",
+      "title": "Algebra Worksheet",
+      "description": "Complete exercises 1-10",
+      "subject": "sub1",
+      "dueDate": "2026-02-21T17:01:16.955Z",
+      "createdBy": "t1",
+      "status": "published",
+      "submissions": []
+    },
+    {
+      "title": "Workspace CAD",
+      "subject": "1771445178798hk07x830m",
+      "dueDate": "2026-02-21",
+      "description": "do finish workspace login\n",
+      "status": "published",
+      "submissions": [],
+      "_id": "1771445251594i7hj7yh9a"
+    }
+  ],
+  "announcements": [
+    {
+      "_id": "ann1",
+      "title": "College Reopening",
+      "content": "Lectures will resume from Monday.",
+      "targetAudience": "all",
+      "postedBy": "t1",
+      "isActive": true,
+      "createdAt": "2026-02-18T17:01:16.956Z"
+    }
+  ],
+  "studyMaterials": [
+    {
+      "_id": "m1",
+      "title": "Calculus Basics",
+      "description": "Introductory notes",
+      "subject": "sub1",
+      "type": "PDF",
+      "url": "https://example.com/notes.pdf",
+      "uploadedBy": "t1",
+      "createdAt": "2026-02-18T17:01:16.956Z"
+    }
+  ],
+  "studyPlans": [
+    {
+      "tasks": [],
+      "streak": {
+        "currentStreak": 0
+      },
+      "_id": "1771444889607n8hjqt4rn"
+    },
+    {
+      "student": "s1",
+      "tasks": [],
+      "streak": {
+        "currentStreak": 0
+      },
+      "_id": "1771446619800k6t0vc2ck"
+    },
+    {
+      "student": "s1771434684915",
+      "tasks": [],
+      "streak": {
+        "currentStreak": 0
+      },
+      "_id": "17714468974262sucgk3yo"
+    }
+  ]
+}

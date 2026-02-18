@@ -5,32 +5,57 @@
 @layer base {
   html {
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    @apply antialiased scroll-smooth;
   }
   body {
-    @apply bg-white text-gray-900 antialiased;
+    @apply bg-gray-50/30 text-slate-900;
   }
 }
 
 @layer components {
   .card {
-    @apply bg-white border border-gray-200 rounded-lg shadow-sm;
+    @apply bg-white border border-slate-100 rounded-2xl shadow-[0_2px_4px_rgba(0,0,0,0.02)] transition-all duration-300;
   }
+  
   .card-hover {
-    @apply hover:shadow-md transition-shadow duration-200;
+    @apply hover:shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:border-slate-200;
   }
+  
   .btn-primary {
-    @apply bg-primary-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-primary-700 transition-colors;
+    @apply bg-slate-900 text-white px-6 py-2.5 rounded-xl font-medium hover:bg-slate-800 active:scale-[0.98] transition-all duration-200 flex items-center justify-center gap-2;
   }
+  
   .btn-secondary {
-    @apply bg-gray-100 text-gray-700 px-4 py-2 rounded-lg font-medium hover:bg-gray-200 transition-colors;
+    @apply bg-white text-slate-600 border border-slate-200 px-6 py-2.5 rounded-xl font-medium hover:bg-slate-50 hover:text-slate-900 active:scale-[0.98] transition-all duration-200 flex items-center justify-center gap-2;
   }
+  
   .input {
-    @apply w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent;
+    @apply w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-4 focus:ring-slate-900/5 focus:border-slate-400 transition-all duration-200 placeholder:text-slate-400;
   }
+  
   .sidebar-link {
-    @apply flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-50 hover:text-primary-600 rounded-lg transition-colors;
+    @apply flex items-center gap-3 px-4 py-3 text-slate-500 hover:text-slate-900 rounded-xl transition-all duration-200;
   }
+  
   .sidebar-link.active {
-    @apply bg-primary-50 text-primary-600 font-medium;
+    @apply bg-slate-900 text-white shadow-lg shadow-slate-900/10 font-medium;
   }
+  
+  .badge {
+    @apply px-2.5 py-0.5 rounded-full text-xs font-semibold;
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.modal-content {
+  @apply bg-white rounded-3xl shadow-2xl border border-slate-100;
+  animation: fadeIn 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
 }

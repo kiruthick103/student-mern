@@ -1,471 +1,228 @@
-const User = require('../models/User');
-const StudentProfile = require('../models/StudentProfile');
-const Subject = require('../models/Subject');
-const Attendance = require('../models/Attendance');
-const Marks = require('../models/Marks');
-const Assignment = require('../models/Assignment');
-const Announcement = require('../models/Announcement');
-const StudyMaterial = require('../models/StudyMaterial');
-const StudyPlan = require('../models/StudyPlan');
+const localDB = require('../utils/localDB');
+const bcrypt = require('bcryptjs');
 
 const teacherController = {
   // Get all students
   getAllStudents: async (req, res) => {
     try {
       const { class: className, section, search } = req.query;
-      
-      let query = { role: 'student' };
+      let users = localDB.find('users', { role: 'student' });
       if (search) {
-        query.$or = [
-          { fullName: { $regex: search, $options: 'i' } },
-          { email: { $regex: search, $options: 'i' } }
-        ];
+        users = users.filter(u =>
+          u.fullName.toLowerCase().includes(search.toLowerCase()) ||
+          u.email.toLowerCase().includes(search.toLowerCase())
+        );
       }
+      let studentProfiles = localDB.find('studentProfiles', {});
+      const attendance = localDB.find('attendance', {});
 
-      const users = await User.find(query).select('-password');
-      
-      let studentProfiles = await StudentProfile.find({
-        user: { $in: users.map(u => u._id) }
-      }).populate('user', '-password').populate('subjects', 'name code');
+      studentProfiles = studentProfiles.map(profile => ({
+        ...profile,
+        user: users.find(u => u._id === profile.user),
+        attendance: attendance.filter(a => a.student === profile.user)
+      })).filter(p => p.user);
 
-      if (className) {
-        studentProfiles = studentProfiles.filter(p => p.class === className);
-      }
-      if (section) {
-        studentProfiles = studentProfiles.filter(p => p.section === section);
-      }
+      if (className) studentProfiles = studentProfiles.filter(p => p.class === className);
+      if (section) studentProfiles = studentProfiles.filter(p => p.section === section);
 
       res.json(studentProfiles);
     } catch (error) {
-      console.error('Get students error:', error);
       res.status(500).json({ message: 'Server error' });
     }
   },
 
-  // Add new student
   addStudent: async (req, res) => {
     try {
       const { email, password, fullName, phone, rollNumber, class: studentClass, section, subjects } = req.body;
+      if (localDB.findOne('users', { email })) return res.status(400).json({ message: 'Email already exists' });
 
-      const existingUser = await User.findOne({ email });
-      if (existingUser) {
-        return res.status(400).json({ message: 'Student already exists' });
-      }
-
-      const user = new User({
-        email,
-        password: password || 'student123',
-        fullName,
-        role: 'student',
-        phone: phone || ''
+      const hashedPassword = await bcrypt.hash(password || 'student123', 10);
+      const user = localDB.insertOne('users', {
+        email, password: hashedPassword, fullName, role: 'student', phone: phone || '', isActive: true
       });
-      await user.save();
 
-      const studentProfile = new StudentProfile({
-        user: user._id,
-        rollNumber,
-        class: studentClass,
-        section: section || 'A',
-        subjects: subjects || []
+      const profile = localDB.insertOne('studentProfiles', {
+        user: user._id, rollNumber, class: studentClass, section: section || 'A', subjects: subjects || []
       });
-      await studentProfile.save();
 
-      // Create study plan
-      const studyPlan = new StudyPlan({
-        student: user._id,
-        tasks: [],
-        weeklyGoals: []
-      });
-      await studyPlan.save();
-
-      // Notify via socket
-      const io = req.app.get('io');
-      io.emit('student_added', { student: studentProfile });
-
-      res.status(201).json({ message: 'Student added successfully', student: studentProfile });
+      localDB.insertOne('studyPlans', { student: user._id, tasks: [], streak: { currentStreak: 0 } });
+      res.status(201).json({ message: 'Student created', student: profile });
     } catch (error) {
-      console.error('Add student error:', error);
       res.status(500).json({ message: 'Server error' });
     }
   },
 
-  // Update student
   updateStudent: async (req, res) => {
     try {
       const { id } = req.params;
       const { fullName, phone, rollNumber, class: studentClass, section, subjects, isActive } = req.body;
+      const profile = localDB.findById('studentProfiles', id);
+      if (!profile) return res.status(404).json({ message: 'Not found' });
 
-      const profile = await StudentProfile.findById(id).populate('user');
-      if (!profile) {
-        return res.status(404).json({ message: 'Student not found' });
-      }
-
-      // Update user
-      if (fullName || phone !== undefined || isActive !== undefined) {
-        await User.findByIdAndUpdate(profile.user._id, {
-          fullName,
-          phone,
-          isActive
-        });
-      }
-
-      // Update profile
-      profile.rollNumber = rollNumber || profile.rollNumber;
-      profile.class = studentClass || profile.class;
-      profile.section = section || profile.section;
-      if (subjects) profile.subjects = subjects;
-      await profile.save();
-
-      const io = req.app.get('io');
-      io.emit('student_updated', { student: profile });
-
-      res.json({ message: 'Student updated successfully', student: profile });
+      localDB.findByIdAndUpdate('users', profile.user, { fullName, phone, isActive });
+      const updated = localDB.findByIdAndUpdate('studentProfiles', id, { rollNumber, class: studentClass, section, subjects });
+      res.json(updated);
     } catch (error) {
-      console.error('Update student error:', error);
       res.status(500).json({ message: 'Server error' });
     }
   },
 
-  // Delete student
   deleteStudent: async (req, res) => {
     try {
       const { id } = req.params;
-      
-      const profile = await StudentProfile.findById(id);
-      if (!profile) {
-        return res.status(404).json({ message: 'Student not found' });
+      const profile = localDB.findById('studentProfiles', id);
+      if (profile) {
+        localDB.deleteById('users', profile.user);
+        localDB.deleteById('studentProfiles', id);
       }
-
-      await User.findByIdAndDelete(profile.user);
-      await StudentProfile.findByIdAndDelete(id);
-      await StudyPlan.findOneAndDelete({ student: profile.user });
-
-      const io = req.app.get('io');
-      io.emit('student_deleted', { studentId: id });
-
-      res.json({ message: 'Student deleted successfully' });
+      res.json({ message: 'Deleted' });
     } catch (error) {
-      console.error('Delete student error:', error);
       res.status(500).json({ message: 'Server error' });
     }
   },
 
-  // Get all subjects
+  // Subjects
   getSubjects: async (req, res) => {
-    try {
-      const subjects = await Subject.find().sort({ name: 1 });
-      res.json(subjects);
-    } catch (error) {
-      console.error('Get subjects error:', error);
-      res.status(500).json({ message: 'Server error' });
-    }
+    res.json(localDB.find('subjects', {}));
   },
 
-  // Add subject
   addSubject: async (req, res) => {
     try {
-      const { name, code, description, totalMarks, passMarks, credits } = req.body;
-
-      const existing = await Subject.findOne({ code });
-      if (existing) {
-        return res.status(400).json({ message: 'Subject code already exists' });
-      }
-
-      const subject = new Subject({
-        name,
-        code,
-        description,
-        totalMarks: totalMarks || 100,
-        passMarks: passMarks || 40,
-        credits: credits || 3
-      });
-      await subject.save();
-
+      const subject = localDB.insertOne('subjects', req.body);
       res.status(201).json(subject);
     } catch (error) {
-      console.error('Add subject error:', error);
       res.status(500).json({ message: 'Server error' });
     }
   },
 
-  // Update attendance
+  // Attendance
+  getAttendance: async (req, res) => {
+    res.json(localDB.find('attendance', {}));
+  },
+
   updateAttendance: async (req, res) => {
     try {
-      const { studentId, date, status, subject, notes } = req.body;
+      const { studentId, date, status, subject } = req.body;
 
-      let attendance = await Attendance.findOne({
-        student: studentId,
-        date: new Date(date)
-      });
+      // Upsert: check if record exists for this student and date
+      const existing = localDB.findOne('attendance', { student: studentId, date });
 
-      if (attendance) {
-        attendance.status = status;
-        attendance.notes = notes;
-        await attendance.save();
+      if (existing) {
+        localDB.findByIdAndUpdate('attendance', existing._id, { status, markedBy: req.user.id });
       } else {
-        attendance = new Attendance({
-          student: studentId,
-          date: new Date(date),
-          status,
-          subject,
-          markedBy: req.user.id,
-          notes
-        });
-        await attendance.save();
+        localDB.insertOne('attendance', { student: studentId, date, status, subject, markedBy: req.user.id });
       }
 
-      const io = req.app.get('io');
-      io.to(`student_${studentId}`).emit('attendance_updated', { attendance });
-
-      res.json({ message: 'Attendance updated', attendance });
+      const updatedAttendance = localDB.find('attendance', { student: studentId });
+      res.json(updatedAttendance);
     } catch (error) {
-      console.error('Update attendance error:', error);
       res.status(500).json({ message: 'Server error' });
     }
   },
 
-  // Get attendance for a date
-  getAttendance: async (req, res) => {
-    try {
-      const { date, class: className } = req.query;
-      
-      const query = { date: new Date(date) };
-      if (className) {
-        const students = await StudentProfile.find({ class: className });
-        query.student = { $in: students.map(s => s.user) };
-      }
-
-      const attendance = await Attendance.find(query)
-        .populate('student', 'fullName email')
-        .populate('subject', 'name');
-
-      res.json(attendance);
-    } catch (error) {
-      console.error('Get attendance error:', error);
-      res.status(500).json({ message: 'Server error' });
-    }
+  // Marks
+  getStudentMarks: async (req, res) => {
+    res.json(localDB.find('marks', { student: req.params.studentId }));
   },
 
-  // Add/Update marks
   addMarks: async (req, res) => {
     try {
-      const { studentId, subject, examType, marksObtained, totalMarks, remarks } = req.body;
-
-      let marks = await Marks.findOne({ student: studentId, subject, examType });
-
-      if (marks) {
-        marks.marksObtained = marksObtained;
-        marks.totalMarks = totalMarks || 100;
-        marks.remarks = remarks;
-        await marks.save();
-      } else {
-        marks = new Marks({
-          student: studentId,
-          subject,
-          examType,
-          marksObtained,
-          totalMarks: totalMarks || 100,
-          remarks,
-          markedBy: req.user.id
-        });
-        await marks.save();
-      }
-
-      await marks.populate('subject', 'name code');
-
-      const io = req.app.get('io');
-      io.to(`student_${studentId}`).emit('marks_updated', { marks });
-
-      res.json({ message: 'Marks updated', marks });
+      const mark = localDB.insertOne('marks', { ...req.body, markedBy: req.user.id });
+      res.json(mark);
     } catch (error) {
-      console.error('Add marks error:', error);
       res.status(500).json({ message: 'Server error' });
     }
   },
 
-  // Get student marks
-  getStudentMarks: async (req, res) => {
-    try {
-      const { studentId } = req.params;
-      
-      const marks = await Marks.find({ student: studentId })
-        .populate('subject', 'name code')
-        .sort({ examDate: -1 });
-
-      res.json(marks);
-    } catch (error) {
-      console.error('Get marks error:', error);
-      res.status(500).json({ message: 'Server error' });
-    }
-  },
-
-  // Create assignment
-  createAssignment: async (req, res) => {
-    try {
-      const { title, description, subject, dueDate, totalMarks, assignedTo } = req.body;
-
-      const assignment = new Assignment({
-        title,
-        description,
-        subject,
-        dueDate: new Date(dueDate),
-        totalMarks: totalMarks || 100,
-        createdBy: req.user.id,
-        assignedTo: assignedTo || [],
-        status: 'published'
-      });
-      await assignment.save();
-
-      await assignment.populate('subject', 'name');
-
-      const io = req.app.get('io');
-      io.emit('assignment_created', { assignment });
-
-      res.status(201).json({ message: 'Assignment created', assignment });
-    } catch (error) {
-      console.error('Create assignment error:', error);
-      res.status(500).json({ message: 'Server error' });
-    }
-  },
-
-  // Get all assignments
+  // Assignments
   getAssignments: async (req, res) => {
-    try {
-      const assignments = await Assignment.find()
-        .populate('subject', 'name code')
-        .populate('createdBy', 'fullName')
-        .sort({ dueDate: 1 });
+    const assignments = localDB.find('assignments', {});
+    const subjects = localDB.find('subjects', {});
+    res.json(assignments.map(a => ({ ...a, subject: subjects.find(s => s._id === a.subject) })));
+  },
 
-      res.json(assignments);
+  createAssignment: async (req, res) => {
+    const assignment = localDB.insertOne('assignments', { ...req.body, createdBy: req.user.id, status: 'published', submissions: [] });
+    res.status(201).json(assignment);
+  },
+
+  getAssignmentSubmissions: async (req, res) => {
+    try {
+      const { id } = req.params;
+      const assignment = localDB.findById('assignments', id);
+      if (!assignment) return res.status(404).json({ message: 'Assignment not found' });
+
+      const users = localDB.find('users', { role: 'student' });
+      const submissions = (assignment.submissions || []).map(s => ({
+        ...s,
+        student: users.find(u => u._id === s.student)
+      }));
+
+      res.json(submissions);
     } catch (error) {
-      console.error('Get assignments error:', error);
       res.status(500).json({ message: 'Server error' });
     }
   },
 
-  // Post announcement
-  postAnnouncement: async (req, res) => {
-    try {
-      const { title, content, targetAudience, targetClasses, priority } = req.body;
-
-      const announcement = new Announcement({
-        title,
-        content,
-        postedBy: req.user.id,
-        targetAudience: targetAudience || 'all',
-        targetClasses: targetClasses || [],
-        priority: priority || 'normal'
-      });
-      await announcement.save();
-
-      const io = req.app.get('io');
-      io.emit('announcement_posted', { announcement });
-
-      res.status(201).json({ message: 'Announcement posted', announcement });
-    } catch (error) {
-      console.error('Post announcement error:', error);
-      res.status(500).json({ message: 'Server error' });
-    }
-  },
-
-  // Get all announcements
+  // Announcements
   getAnnouncements: async (req, res) => {
-    try {
-      const announcements = await Announcement.find({ isActive: true })
-        .populate('postedBy', 'fullName')
-        .sort({ createdAt: -1 });
-
-      res.json(announcements);
-    } catch (error) {
-      console.error('Get announcements error:', error);
-      res.status(500).json({ message: 'Server error' });
-    }
+    const anns = localDB.find('announcements', {});
+    const users = localDB.find('users', {});
+    res.json(anns.map(a => ({ ...a, postedBy: users.find(u => u._id === a.postedBy) })));
   },
 
-  // Upload study material
+  postAnnouncement: async (req, res) => {
+    const ann = localDB.insertOne('announcements', { ...req.body, postedBy: req.user.id, isActive: true, createdAt: new Date() });
+    res.status(201).json(ann);
+  },
+
+  // Materials
+  getMaterials: async (req, res) => {
+    const mats = localDB.find('studyMaterials', {});
+    const subs = localDB.find('subjects', {});
+    res.json(mats.map(m => ({ ...m, subject: subs.find(s => s._id === m.subject) })));
+  },
+
   uploadMaterial: async (req, res) => {
-    try {
-      const { title, description, subject, type, url, targetClasses } = req.body;
-
-      const material = new StudyMaterial({
-        title,
-        description,
-        subject,
-        type,
-        url,
-        uploadedBy: req.user.id,
-        targetClasses: targetClasses || []
-      });
-      await material.save();
-
-      await material.populate('subject', 'name');
-      await material.populate('uploadedBy', 'fullName');
-
-      const io = req.app.get('io');
-      io.emit('material_uploaded', { material });
-
-      res.status(201).json({ message: 'Material uploaded', material });
-    } catch (error) {
-      console.error('Upload material error:', error);
-      res.status(500).json({ message: 'Server error' });
-    }
+    const mat = localDB.insertOne('studyMaterials', { ...req.body, uploadedBy: req.user.id, createdAt: new Date() });
+    res.status(201).json(mat);
   },
 
-  // Get analytics
+  // Analytics
   getAnalytics: async (req, res) => {
     try {
-      const totalStudents = await User.countDocuments({ role: 'student' });
-      const totalSubjects = await Subject.countDocuments();
-      const totalAssignments = await Assignment.countDocuments();
-      
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      const todayAttendance = await Attendance.countDocuments({
-        date: today,
-        status: 'present'
-      });
+      const students = localDB.find('users', { role: 'student' });
+      const studentProfiles = localDB.find('studentProfiles', {});
+      const subjects = localDB.find('subjects', {});
+      const assignments = localDB.find('assignments', {});
+      const attendance = localDB.find('attendance', {});
+      const marks = localDB.find('marks', {});
 
       // Class distribution
-      const classDistribution = await StudentProfile.aggregate([
-        { $group: { _id: '$class', count: { $sum: 1 } } },
-        { $sort: { _id: 1 } }
-      ]);
+      const classMap = {};
+      studentProfiles.forEach(p => {
+        classMap[p.class] = (classMap[p.class] || 0) + 1;
+      });
+      const classDistribution = Object.keys(classMap).map(c => ({ _id: c, count: classMap[c] }));
 
-      // Recent marks average
-      const marksData = await Marks.aggregate([
-        {
-          $group: {
-            _id: '$subject',
-            avgMarks: { $avg: '$marksObtained' }
-          }
-        },
-        {
-          $lookup: {
-            from: 'subjects',
-            localField: '_id',
-            foreignField: '_id',
-            as: 'subject'
-          }
-        },
-        { $unwind: '$subject' },
-        {
-          $project: {
-            subjectName: '$subject.name',
-            avgMarks: 1
-          }
-        }
-      ]);
+      // Marks by subject
+      const marksBySubject = subjects.map(s => {
+        const subjectMarks = marks.filter(m => m.subject === s._id);
+        const avg = subjectMarks.length
+          ? subjectMarks.reduce((acc, m) => acc + (m.marksObtained / m.totalMarks) * 100, 0) / subjectMarks.length
+          : 0;
+        return { subjectName: s.name, avgMarks: avg };
+      }).filter(m => m.avgMarks > 0);
 
       res.json({
-        totalStudents,
-        totalSubjects,
-        totalAssignments,
-        todayAttendance,
+        totalStudents: students.length,
+        totalSubjects: subjects.length,
+        totalAssignments: assignments.length,
+        todayAttendance: attendance.filter(a => a.date === new Date().toISOString().split('T')[0]).length,
         classDistribution,
-        marksData
+        marksData: marksBySubject
       });
     } catch (error) {
-      console.error('Get analytics error:', error);
       res.status(500).json({ message: 'Server error' });
     }
   }

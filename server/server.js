@@ -9,7 +9,6 @@ const morgan = require('morgan');
 require('dotenv').config();
 
 const connectDB = require('./config/db');
-const auth = require('./middleware/auth');
 
 // Import routes
 const authRoutes = require('./routes/auth');
@@ -95,7 +94,7 @@ app.get('/health', (req, res) => {
 // Error handling middleware
 app.use((err, req, res, next) => {
   console.error('Error:', err);
-  res.status(500).json({ 
+  res.status(500).json({
     message: 'Server error',
     error: process.env.NODE_ENV === 'development' ? err.message : undefined
   });

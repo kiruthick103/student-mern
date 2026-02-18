@@ -29,12 +29,14 @@ router.post('/marks', teacherController.addMarks);
 // Assignments
 router.get('/assignments', teacherController.getAssignments);
 router.post('/assignments', teacherController.createAssignment);
+router.get('/assignments/:id/submissions', teacherController.getAssignmentSubmissions);
 
 // Announcements
 router.get('/announcements', teacherController.getAnnouncements);
 router.post('/announcements', teacherController.postAnnouncement);
 
 // Study Materials
+router.get('/materials', teacherController.getMaterials);
 router.post('/materials', teacherController.uploadMaterial);
 
 // Analytics

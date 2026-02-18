@@ -9,7 +9,7 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  
+
   const { login } = useAuth();
   const navigate = useNavigate();
 
@@ -19,7 +19,7 @@ const Login = () => {
     setLoading(true);
 
     const result = await login(email, password);
-    
+
     if (result.success) {
       // Redirect based on role
       if (result.user.role === 'teacher') {
@@ -30,7 +30,7 @@ const Login = () => {
     } else {
       setError(result.message);
     }
-    
+
     setLoading(false);
   };
 
@@ -103,11 +103,23 @@ const Login = () => {
           </form>
 
           {/* Demo Credentials */}
-          <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-            <p className="text-sm font-medium text-gray-700 mb-2">Demo Credentials:</p>
-            <div className="space-y-1 text-sm text-gray-600">
-              <p><span className="font-medium">Teacher:</span> kiruthick3238q@gmail.com / 123456</p>
-              <p><span className="font-medium">Student:</span> Register as new user</p>
+          <div className="mt-8 p-4 bg-primary-50 rounded-xl border border-primary-100">
+            <p className="text-sm font-bold text-primary-800 mb-3 flex items-center gap-2">
+              <span className="w-2 h-2 bg-primary-600 rounded-full animate-pulse"></span>
+              Demo Credentials (Fully Working)
+            </p>
+            <div className="space-y-3 text-sm text-primary-700">
+              <div className="flex justify-between items-center pb-2 border-b border-primary-100">
+                <span className="font-semibold">Teacher:</span>
+                <code className="bg-white px-2 py-0.5 rounded">kiruthick3238q@gmail.com / 12345</code>
+              </div>
+              <div className="flex justify-between items-center pt-1">
+                <span className="font-semibold">Student:</span>
+                <code className="bg-white px-2 py-0.5 rounded">student@example.com / 12345</code>
+              </div>
+              <p className="text-[10px] text-primary-500 mt-2 text-center">
+                * Students added by teachers can login with their own email.
+              </p>
             </div>
           </div>
         </div>

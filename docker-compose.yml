@@ -1,0 +1,33 @@
+version: '3.8'
+
+services:
+  server:
+    build: ./server
+    ports:
+      - "5000:5000"
+    environment:
+      - PORT=5000
+      - MONGODB_URI=mongodb://mongodb:27017/student-management
+      - JWT_SECRET=your-secret-key-for-docker
+      - CLIENT_URL=http://localhost:3000
+    depends_on:
+      - mongodb
+    volumes:
+      - ./server/data:/usr/src/app/data
+
+  client:
+    build: ./client
+    ports:
+      - "3000:80"
+    depends_on:
+      - server
+
+  mongodb:
+    image: mongo:latest
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+
+volumes:
+  mongodb_data:

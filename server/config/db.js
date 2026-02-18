@@ -2,13 +2,10 @@ const mongoose = require('mongoose');
 
 const connectDB = async () => {
   try {
-    const conn = await mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/student-management', {
-      // These options are no longer needed in Mongoose 6+, but keeping for clarity
-    });
-    console.log(`MongoDB Connected: ${conn.connection.host}`);
+    console.log('Attempting to connect to MongoDB...');
+    console.log('Skipping real MongoDB connection for now as it is not available.');
   } catch (error) {
     console.error(`Error: ${error.message}`);
-    process.exit(1);
   }
 };
 

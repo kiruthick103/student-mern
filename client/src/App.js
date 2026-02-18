@@ -1,6 +1,6 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { AuthProvider } from './context/AuthContext';
+import { AuthProvider, useAuth } from './context/AuthContext';
 import { SocketProvider } from './context/SocketContext';
 
 // Layouts
@@ -17,14 +17,22 @@ import Analytics from './pages/Analytics';
 
 // Protected Route Component
 const ProtectedRoute = ({ children, allowedRole }) => {
+  const { user, loading } = useAuth();
   const token = localStorage.getItem('token');
-  const user = JSON.parse(localStorage.getItem('user') || '{}');
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin w-8 h-8 border-4 border-primary-500 border-t-transparent rounded-full"></div>
+      </div>
+    );
+  }
 
   if (!token) {
     return <Navigate to="/login" replace />;
   }
 
-  if (allowedRole && user.role !== allowedRole) {
+  if (allowedRole && user?.role !== allowedRole) {
     return <Navigate to="/" replace />;
   }
 

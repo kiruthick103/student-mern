@@ -1,7 +1,7 @@
 {
   "name": "student-management-server",
   "version": "1.0.0",
-  "description": "Backend for Student Management System",
+  "description": "Backend for College Management System",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",

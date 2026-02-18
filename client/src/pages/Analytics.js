@@ -16,6 +16,8 @@ import {
   ArcElement
 } from 'chart.js';
 import { Bar, Line, Doughnut } from 'react-chartjs-2';
+import { studentService } from '../services/api';
+import { teacherService } from '../services/api';
 
 ChartJS.register(
   CategoryScale, 

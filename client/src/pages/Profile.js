@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  User, Mail, Phone, Calendar, BookOpen, 
+import {
+  User, Mail, Phone, Calendar, BookOpen,
   Edit2, Save, X, Camera
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { studentService } from '../services/api';
+import { authService } from '../services/api';
 
 const Profile = () => {
   const { user, updateUser } = useAuth();
@@ -187,7 +188,7 @@ const Profile = () => {
                   <p className="text-gray-900">{profile?.rollNumber}</p>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Class</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Year</label>
                   {editing ? (
                     <input
                       type="text"
