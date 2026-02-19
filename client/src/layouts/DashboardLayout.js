@@ -78,12 +78,12 @@ const DashboardLayout = ({ children }) => {
       <aside className="w-72 bg-white border-r border-slate-100 flex flex-shrink-0 flex-col">
         <div className="p-8">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-slate-900 rounded-2xl flex items-center justify-center shadow-lg shadow-slate-900/20">
+            <div className="w-10 h-10 bg-emerald-600 rounded-2xl flex items-center justify-center shadow-lg shadow-emerald-600/20">
               <GraduationCap className="w-6 h-6 text-white" />
             </div>
             <div>
               <h1 className="text-xl font-bold tracking-tight text-slate-900 leading-none">SMS</h1>
-              <p className="text-[10px] uppercase tracking-widest font-bold text-slate-400 mt-1">{user?.role}</p>
+              <p className="text-[10px] uppercase tracking-widest font-bold text-emerald-600 mt-1">{user?.role}</p>
             </div>
           </div>
         </div>
@@ -115,20 +115,20 @@ const DashboardLayout = ({ children }) => {
       {/* Main Content */}
       <main className="flex-1 flex flex-col overflow-hidden">
         {/* Header */}
-        <header className="bg-white/80 backdrop-blur-md border-b border-slate-100 px-8 py-5">
+        <header className="bg-white/80 backdrop-blur-md border-b border-slate-100 px-8 py-5 sticky top-0 z-30">
           <div className="flex items-center justify-between">
             <div>
               <h2 className="text-lg font-bold text-slate-900">
                 {user?.role === 'teacher' ? 'Faculty Portal' : 'Student Hub'}
               </h2>
-              <p className="text-xs text-slate-400 font-medium">System Management</p>
+              <p className="text-xs text-emerald-600 font-bold uppercase tracking-widest mt-1">Management</p>
             </div>
 
             <div className="flex items-center gap-6">
               <div className="relative" ref={notificationRef}>
                 <button
                   onClick={() => setShowNotifications(!showNotifications)}
-                  className={`relative p-2.5 rounded-xl transition-all ${showNotifications ? 'bg-slate-100 text-slate-900' : 'text-slate-400 hover:bg-slate-50 hover:text-slate-900'}`}
+                  className={`relative p-2.5 rounded-xl transition-all ${showNotifications ? 'bg-emerald-50 text-emerald-600' : 'text-slate-400 hover:bg-emerald-50/50 hover:text-emerald-600'}`}
                 >
                   <Bell className="w-5 h-5" />
                   {notifications.length > 0 && (
@@ -138,33 +138,33 @@ const DashboardLayout = ({ children }) => {
 
                 {/* Notifications Dropdown */}
                 {showNotifications && (
-                  <div className="absolute right-0 mt-4 w-96 bg-white rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.1)] border border-slate-100 z-50 overflow-hidden animate-fade-in">
-                    <div className="p-6 border-b border-slate-50 flex items-center justify-between">
+                  <div className="absolute right-0 mt-4 w-96 bg-white rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.1)] border border-emerald-100 z-50 overflow-hidden animate-fade-in">
+                    <div className="p-6 border-b border-emerald-50 flex items-center justify-between">
                       <h3 className="font-bold text-slate-900">Notifications</h3>
-                      <button onClick={() => setShowNotifications(false)} className="text-slate-400 hover:text-slate-900 transition-colors">
+                      <button onClick={() => setShowNotifications(false)} className="text-slate-400 hover:text-emerald-600 transition-colors">
                         <X className="w-5 h-5" />
                       </button>
                     </div>
                     <div className="max-h-[450px] overflow-y-auto">
                       {loading ? (
                         <div className="p-12 text-center">
-                          <div className="animate-spin w-8 h-8 border-2 border-slate-900 border-t-transparent rounded-full mx-auto"></div>
+                          <div className="animate-spin w-8 h-8 border-2 border-emerald-600 border-t-transparent rounded-full mx-auto"></div>
                         </div>
                       ) : notifications.length > 0 ? (
-                        <div className="divide-y divide-slate-50">
+                        <div className="divide-y divide-emerald-50">
                           {notifications.map((notif, idx) => (
-                            <div key={idx} className="p-6 hover:bg-slate-50/50 cursor-pointer transition-colors" onClick={() => {
+                            <div key={idx} className="p-6 hover:bg-emerald-50/50 cursor-pointer transition-colors" onClick={() => {
                               setShowNotifications(false);
                               navigate(user.role === 'teacher' ? '/teacher?tab=announcements' : '/student?tab=dashboard');
                             }}>
                               <div className="flex gap-4">
-                                <div className="w-10 h-10 rounded-2xl bg-slate-100 flex items-center justify-center flex-shrink-0">
-                                  <Megaphone className="w-5 h-5 text-slate-900" />
+                                <div className="w-10 h-10 rounded-2xl bg-emerald-50 flex items-center justify-center flex-shrink-0">
+                                  <Megaphone className="w-5 h-5 text-emerald-600" />
                                 </div>
                                 <div className="flex-1 min-w-0">
                                   <p className="text-sm font-bold text-slate-900 truncate">{notif.title}</p>
                                   <p className="text-xs text-slate-500 line-clamp-2 mt-1 leading-relaxed">{notif.content}</p>
-                                  <p className="text-[10px] text-slate-400 mt-2 font-bold uppercase tracking-wider">
+                                  <p className="text-[10px] text-emerald-600 mt-2 font-bold uppercase tracking-wider">
                                     {new Date(notif.createdAt || Date.now()).toLocaleDateString()}
                                   </p>
                                 </div>
@@ -179,13 +179,13 @@ const DashboardLayout = ({ children }) => {
                         </div>
                       )}
                     </div>
-                    <div className="p-4 bg-slate-50 border-t border-slate-100 text-center">
+                    <div className="p-4 bg-emerald-50/30 border-t border-emerald-50 text-center">
                       <button
                         onClick={() => {
                           setShowNotifications(false);
                           navigate(user.role === 'teacher' ? '/teacher?tab=announcements' : '/student?tab=dashboard');
                         }}
-                        className="text-xs font-bold text-slate-900 hover:underline"
+                        className="text-xs font-bold text-emerald-600 hover:underline"
                       >
                         See All Updates
                       </button>
@@ -199,10 +199,10 @@ const DashboardLayout = ({ children }) => {
               <div className="flex items-center gap-4">
                 <div className="text-right">
                   <p className="text-sm font-bold text-slate-900 leading-none">{user?.fullName}</p>
-                  <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mt-1">{user?.email}</p>
+                  <p className="text-[10px] text-emerald-600 font-bold uppercase tracking-wider mt-1">{user?.email}</p>
                 </div>
-                <div className="w-10 h-10 bg-slate-100 rounded-2xl flex items-center justify-center border-2 border-white ring-1 ring-slate-100">
-                  <span className="text-sm font-bold text-slate-900">
+                <div className="w-10 h-10 bg-emerald-50 rounded-2xl flex items-center justify-center border-2 border-white ring-1 ring-emerald-100">
+                  <span className="text-sm font-bold text-emerald-600">
                     {user?.fullName?.charAt(0) || 'U'}
                   </span>
                 </div>

@@ -119,16 +119,33 @@ const TeacherDashboard = () => {
   };
 
   const handleUpdateAttendance = async (studentId, status) => {
+    // Optimistic Update
+    const today = new Date().toISOString().split('T')[0];
+    setStudents(prev => prev.map(student => {
+      if (student.user?._id === studentId || student._id === studentId) {
+        const otherAttendance = student.attendance?.filter(a => a.date !== today) || [];
+        return {
+          ...student,
+          attendance: [...otherAttendance, { date: today, status }]
+        };
+      }
+      return student;
+    }));
+
     try {
       await teacherService.updateAttendance({
         studentId,
-        date: new Date().toISOString().split('T')[0],
+        date: today,
         status,
-        subject: subjects[0]?._id // Default to first subject if none selected
+        subject: subjects[0]?._id
       });
-      fetchData();
+      // Refresh in background to sync with server
+      const response = await teacherService.getStudents();
+      setStudents(response.data);
     } catch (error) {
       console.error('Error updating attendance:', error);
+      alert('Failed to update attendance');
+      fetchData(); // Rollback on error
     }
   };
 
@@ -166,8 +183,8 @@ const TeacherDashboard = () => {
   const StatCard = ({ icon: Icon, title, value }) => (
     <div className="card p-8 group transition-all duration-300">
       <div className="flex items-center gap-6">
-        <div className="w-14 h-14 bg-slate-50 rounded-2xl flex items-center justify-center group-hover:bg-slate-900 transition-all duration-500 shadow-sm border border-slate-50">
-          <Icon className="w-6 h-6 text-slate-900 group-hover:text-white transition-colors duration-500" />
+        <div className="w-14 h-14 bg-emerald-50 rounded-2xl flex items-center justify-center group-hover:bg-emerald-600 transition-all duration-500 shadow-sm border border-emerald-50">
+          <Icon className="w-6 h-6 text-emerald-600 group-hover:text-white transition-colors duration-500" />
         </div>
         <div>
           <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">{title}</p>
@@ -212,8 +229,8 @@ const TeacherDashboard = () => {
                 key={tab}
                 onClick={() => { setActiveTab(tab); navigate(`/teacher?tab=${tab}`); }}
                 className={`px-6 py-5 font-bold text-xs uppercase tracking-widest border-b-2 transition-all duration-200 ${activeTab === tab
-                  ? 'border-slate-900 text-slate-900'
-                  : 'border-transparent text-slate-400 hover:text-slate-600'
+                  ? 'border-emerald-600 text-emerald-600'
+                  : 'border-transparent text-slate-400 hover:text-emerald-600'
                   }`}
               >
                 {tab}
@@ -253,51 +270,55 @@ const TeacherDashboard = () => {
                 filteredStudents.length > 0 ? (
                   <div className="overflow-x-auto">
                     <table className="w-full">
-                      <thead className="bg-gray-50">
+                      <thead className="bg-slate-50/50">
                         <tr>
-                          <th className="text-left py-3 px-4 font-medium text-gray-700">Name</th>
-                          <th className="text-left py-3 px-4 font-medium text-gray-700">Roll No</th>
-                          <th className="text-left py-3 px-4 font-medium text-gray-700">Year</th>
-                          <th className="text-left py-3 px-4 font-medium text-gray-700">Email</th>
-                          <th className="text-left py-3 px-4 font-medium text-gray-700">Actions</th>
+                          <th className="text-left py-4 px-6 font-bold text-[10px] uppercase tracking-widest text-slate-400">Name</th>
+                          <th className="text-left py-4 px-6 font-bold text-[10px] uppercase tracking-widest text-slate-400">Roll No</th>
+                          <th className="text-left py-4 px-6 font-bold text-[10px] uppercase tracking-widest text-slate-400">Year</th>
+                          <th className="text-left py-4 px-6 font-bold text-[10px] uppercase tracking-widest text-slate-400">Email</th>
+                          <th className="text-left py-4 px-6 font-bold text-[10px] uppercase tracking-widest text-slate-400">Actions</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-gray-100">
+                      <tbody className="divide-y divide-slate-50">
                         {filteredStudents.map(student => (
-                          <tr key={student._id} className="hover:bg-gray-50">
-                            <td className="py-3 px-4">
+                          <tr key={student._id} className="hover:bg-slate-50/30 transition-colors group">
+                            <td className="py-4 px-6">
                               <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 rounded-2xl bg-slate-100 flex items-center justify-center flex-shrink-0">
-                                  <span className="text-sm font-bold text-slate-900">
+                                <div className="w-10 h-10 rounded-2xl bg-emerald-50 flex items-center justify-center flex-shrink-0 group-hover:bg-emerald-600 transition-colors">
+                                  <span className="text-sm font-bold text-emerald-600 group-hover:text-white transition-colors">
                                     {student.user?.fullName?.charAt(0) || '?'}
                                   </span>
                                 </div>
-                                <span className="font-medium text-gray-900">
+                                <span className="font-bold text-slate-900 tracking-tight">
                                   {student.user?.fullName || 'Unknown'}
                                 </span>
                               </div>
                             </td>
-                            <td className="py-3 px-4 text-gray-600">{student.rollNumber}</td>
-                            <td className="py-3 px-4 text-gray-600">{student.class}-{student.section}</td>
-                            <td className="py-3 px-4 text-gray-600">{student.user?.email}</td>
-                            <td className="py-3 px-4">
-                              <div className="flex gap-2">
+                            <td className="py-4 px-6 text-sm font-medium text-slate-500">{student.rollNumber}</td>
+                            <td className="py-4 px-6">
+                              <span className="px-3 py-1 bg-emerald-50 text-emerald-600 rounded-lg text-xs font-bold uppercase tracking-wider">
+                                Year {student.class}-{student.section}
+                              </span>
+                            </td>
+                            <td className="py-4 px-6 text-sm font-medium text-slate-500">{student.user?.email}</td>
+                            <td className="py-4 px-6">
+                              <div className="flex gap-1">
                                 <button
                                   onClick={() => { setFormData(student); setModalType('marks'); setShowModal(true); }}
-                                  className="p-1 text-green-600 hover:bg-green-50 rounded tooltip-trigger"
+                                  className="w-8 h-8 flex items-center justify-center text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors"
                                   title="Add Marks"
                                 >
                                   <FileText className="w-4 h-4" />
                                 </button>
                                 <button
                                   onClick={() => { setFormData(student); setModalType('edit'); setShowModal(true); }}
-                                  className="p-1 text-blue-600 hover:bg-blue-50 rounded"
+                                  className="w-8 h-8 flex items-center justify-center text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors"
                                 >
                                   <Edit2 className="w-4 h-4" />
                                 </button>
                                 <button
                                   onClick={() => handleDeleteStudent(student._id)}
-                                  className="p-1 text-red-600 hover:bg-red-50 rounded"
+                                  className="w-8 h-8 flex items-center justify-center text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
                                 >
                                   <Trash2 className="w-4 h-4" />
                                 </button>

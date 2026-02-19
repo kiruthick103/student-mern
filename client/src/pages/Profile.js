@@ -96,14 +96,14 @@ const Profile = () => {
         <div className="p-6">
           <div className="flex items-center gap-6 mb-6">
             <div className="relative">
-              <div className="w-24 h-24 bg-primary-100 rounded-full flex items-center justify-center">
-                <span className="text-3xl font-bold text-primary-600">
+              <div className="w-24 h-24 bg-emerald-50 rounded-3xl flex items-center justify-center border-4 border-white shadow-xl shadow-emerald-600/10">
+                <span className="text-3xl font-black text-emerald-600">
                   {profile?.user?.fullName?.charAt(0) || 'U'}
                 </span>
               </div>
               {editing && (
-                <button className="absolute bottom-0 right-0 w-8 h-8 bg-primary-500 text-white rounded-full flex items-center justify-center hover:bg-primary-600">
-                  <Camera className="w-4 h-4" />
+                <button className="absolute -bottom-2 -right-2 w-10 h-10 bg-emerald-600 text-white rounded-2xl flex items-center justify-center hover:bg-emerald-700 shadow-lg transition-all active:scale-90">
+                  <Camera className="w-5 h-5" />
                 </button>
               )}
             </div>

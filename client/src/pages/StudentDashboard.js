@@ -102,8 +102,12 @@ const StudentDashboard = () => {
           <p className="text-3xl font-extrabold text-slate-900 tracking-tight">{value}</p>
           {subtitle && <p className="text-sm font-medium text-slate-500 mt-2">{subtitle}</p>}
         </div>
-        <div className="w-14 h-14 bg-slate-50 rounded-2xl flex items-center justify-center group-hover:bg-slate-900 transition-all duration-500 shadow-sm border border-slate-50">
-          <Icon className="w-6 h-6 text-slate-900 group-hover:text-white transition-colors duration-500" />
+        <div className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-all duration-500 shadow-sm border 
+          ${color === 'red'
+            ? 'bg-red-50 border-red-50 text-red-600 group-hover:bg-red-600 group-hover:text-white group-hover:shadow-red-200'
+            : 'bg-emerald-50 border-emerald-50 text-emerald-600 group-hover:bg-emerald-600 group-hover:text-white group-hover:shadow-emerald-200'}`}
+        >
+          <Icon className="w-6 h-6 transition-colors duration-500" />
         </div>
       </div>
     </div>
@@ -127,32 +131,39 @@ const StudentDashboard = () => {
             onClick={() => { setActiveTab(tab); navigate(`/student?tab=${tab}`); }}
             className={`px-6 py-4 font-bold text-xs uppercase tracking-widest border-b-2 transition-all duration-200
               ${activeTab === tab
-                ? 'border-slate-900 text-slate-900'
-                : 'border-transparent text-slate-400 hover:text-slate-600'
+                ? 'border-emerald-600 text-emerald-600'
+                : 'border-transparent text-slate-400 hover:text-emerald-600'
               }`}
           >
             {tab}
           </button>
         ))}
       </div>
+
       {activeTab === 'dashboard' && (
         <>
           {/* Welcome Header */}
-          <div className="card p-6">
+          <div className="card p-8 group overflow-hidden relative">
+            <div className="absolute top-0 left-0 w-2 h-full bg-emerald-600"></div>
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="text-xl font-semibold text-gray-900">
+                <h2 className="text-2xl font-black text-slate-900 tracking-tight">
                   Welcome back, {profile?.user?.fullName || 'Student'}!
                 </h2>
-                <p className="text-gray-600 mt-1">
-                  Year {profile?.class || '1'}-{profile?.section || 'A'} | Roll No: {profile?.rollNumber || 'N/A'}
-                </p>
+                <div className="flex items-center gap-2 mt-2">
+                  <span className="px-3 py-1 bg-emerald-50 text-emerald-600 rounded-lg text-xs font-bold uppercase tracking-wider">
+                    {profile?.class || '1'}-{profile?.section || 'A'}
+                  </span>
+                  <span className="text-xs font-bold text-slate-400 uppercase tracking-widest border-l border-slate-200 pl-2">
+                    Roll No: {profile?.rollNumber || 'N/A'}
+                  </span>
+                </div>
               </div>
               {studyPlan?.studyPlan?.streak?.currentStreak > 0 && (
-                <div className="flex items-center gap-2 bg-orange-50 px-4 py-2 rounded-lg">
-                  <Flame className="w-5 h-5 text-orange-500" />
-                  <span className="font-semibold text-orange-700">
-                    {studyPlan.studyPlan.streak.currentStreak} day streak!
+                <div className="flex items-center gap-3 bg-red-50 px-5 py-3 rounded-2xl border border-red-100">
+                  <Flame className="w-5 h-5 text-red-600" />
+                  <span className="font-black text-red-600 text-sm">
+                    {studyPlan.studyPlan.streak.currentStreak} DAY STREAK!
                   </span>
                 </div>
               )}
@@ -161,15 +172,15 @@ const StudentDashboard = () => {
 
           {/* Notification Banner */}
           {(announcements.length > 0 || (marks.marks && marks.marks.length > 0)) && (
-            <div className="bg-slate-900 rounded-2xl p-6 text-white shadow-xl animate-fade-in">
+            <div className="bg-emerald-600 rounded-2xl p-6 text-white shadow-xl animate-fade-in">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
                   <div className="bg-white/10 p-2.5 rounded-xl backdrop-blur-md">
                     <Bell className="w-5 h-5 text-white" />
                   </div>
                   <div>
-                    <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Latest Update</p>
-                    <p className="font-bold text-sm tracking-tight">
+                    <p className="text-[10px] text-emerald-100 font-bold uppercase tracking-widest">Latest Update</p>
+                    <p className="font-bold text-sm tracking-tight text-white/90">
                       {announcements.length > 0
                         ? `Announcement: ${announcements[0].title}`
                         : `New Mark added for ${marks.marks[0].subject?.name}: ${marks.marks[0].grade}`
@@ -179,7 +190,7 @@ const StudentDashboard = () => {
                 </div>
                 <button
                   onClick={() => navigate(`/student?tab=${announcements.length > 0 ? 'dashboard' : 'marks'}`)}
-                  className="px-6 py-2 bg-white text-slate-900 rounded-xl text-xs font-bold hover:bg-slate-50 transition-all shadow-sm active:scale-95"
+                  className="px-6 py-2 bg-white text-emerald-600 rounded-xl text-xs font-bold hover:bg-emerald-50 transition-all shadow-sm active:scale-95"
                 >
                   View Details
                 </button>
@@ -193,29 +204,29 @@ const StudentDashboard = () => {
               icon={TrendingUp}
               title="Average Marks"
               value={`${marks.average || 0}%`}
-              subtitle={marks.average >= 60 ? 'Good performance!' : 'Needs improvement'}
-              color={marks.average >= 60 ? 'bg-green-500' : 'bg-orange-500'}
+              subtitle={marks.average >= 60 ? 'Excellence achieved!' : 'Potential to grow'}
+              color={marks.average >= 60 ? 'emerald' : 'red'}
             />
             <StatCard
               icon={ClipboardList}
               title="Attendance"
               value={`${attendance.stats?.percentage || 0}%`}
-              subtitle={`${attendance.stats?.present || 0} days present`}
-              color={attendance.stats?.percentage >= 75 ? 'bg-blue-500' : 'bg-red-500'}
+              subtitle={`${attendance.stats?.present || 0} days active`}
+              color={attendance.stats?.percentage >= 75 ? 'emerald' : 'red'}
             />
             <StatCard
               icon={FileText}
               title="Assignments"
               value={assignments.filter(a => !a.mySubmission).length}
-              subtitle="Pending"
-              color="bg-purple-500"
+              subtitle="Requires action"
+              color="red"
             />
             <StatCard
               icon={Calendar}
               title="Study Tasks"
               value={studyPlan?.todayTasks?.length || 0}
-              subtitle="Scheduled today"
-              color="bg-teal-500"
+              subtitle="Target for today"
+              color="emerald"
             />
           </div>
 
@@ -230,11 +241,11 @@ const StudentDashboard = () => {
                     label: 'Marks Obtained',
                     data: marks.marks?.slice(0, 7).reverse().map(m => (m.marksObtained / m.totalMarks) * 100) || [],
                     fill: true,
-                    backgroundColor: 'rgba(99, 102, 241, 0.1)',
-                    borderColor: 'rgb(99, 102, 241)',
+                    backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                    borderColor: 'rgb(16, 185, 129)',
                     borderWidth: 3,
                     tension: 0.4,
-                    pointBackgroundColor: 'rgb(99, 102, 241)',
+                    pointBackgroundColor: 'rgb(16, 185, 129)',
                     pointBorderColor: '#fff',
                     pointBorderWidth: 2,
                     pointRadius: 6,
@@ -258,9 +269,9 @@ const StudentDashboard = () => {
               <h3 className="font-semibold text-gray-900 mb-4">Latest Announcements</h3>
               <div className="space-y-3">
                 {announcements.slice(0, 3).map((announcement, idx) => (
-                  <div key={idx} className="p-3 bg-gray-50 rounded-lg border-l-4 border-primary-500">
-                    <p className="font-medium text-gray-900 text-sm">{announcement.title}</p>
-                    <p className="text-xs text-gray-600 line-clamp-2 mt-1">{announcement.content}</p>
+                  <div key={idx} className="p-3 bg-emerald-50/50 rounded-lg border-l-4 border-emerald-600">
+                    <p className="font-bold text-slate-900 text-sm tracking-tight">{announcement.title}</p>
+                    <p className="text-xs text-slate-500 line-clamp-2 mt-1 font-medium leading-relaxed">{announcement.content}</p>
                   </div>
                 ))}
                 {announcements.length === 0 && <p className="text-sm text-gray-500 text-center py-2">No announcements</p>}
@@ -294,13 +305,13 @@ const StudentDashboard = () => {
       {activeTab === 'subjects' && (
         <div className="grid md:grid-cols-3 gap-6">
           {materials.map((material, idx) => (
-            <div key={idx} className="card p-6 flex flex-col items-center text-center">
-              <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mb-4 text-blue-600">
+            <div key={idx} className="card p-8 flex flex-col items-center text-center group hover:border-emerald-200 transition-all">
+              <div className="w-20 h-20 bg-emerald-50 rounded-[2.5rem] flex items-center justify-center mb-6 text-emerald-600 group-hover:bg-emerald-600 group-hover:text-white transition-all duration-500 shadow-sm border border-emerald-50">
                 <BookOpen className="w-8 h-8" />
               </div>
-              <h3 className="font-bold text-gray-900">{material.title}</h3>
-              <p className="text-sm text-gray-500 mb-4">{material.subject?.name}</p>
-              <a href={material.url} target="_blank" rel="noreferrer" className="btn-secondary w-full py-2">View Materials</a>
+              <h3 className="text-lg font-bold text-slate-900 mb-1 tracking-tight">{material.title}</h3>
+              <p className="text-xs font-bold text-emerald-600 uppercase tracking-widest mb-6">{material.subject?.name}</p>
+              <a href={material.url} target="_blank" rel="noreferrer" className="btn-secondary w-full">View Materials</a>
             </div>
           ))}
           {materials.length === 0 && <div className="col-span-3 text-center py-12 text-gray-500">No subjects/materials available.</div>}
@@ -309,9 +320,9 @@ const StudentDashboard = () => {
 
       {activeTab === 'attendance' && (
         <div className="card overflow-hidden">
-          <div className="p-6 border-b border-gray-100 flex justify-between items-center">
-            <h3 className="font-bold text-gray-900">Attendance History</h3>
-            <span className="text-sm font-semibold px-3 py-1 bg-blue-100 text-blue-700 rounded-full">
+          <div className="p-8 border-b border-slate-50 flex justify-between items-center">
+            <h3 className="text-xl font-bold text-slate-900 tracking-tight">Attendance History</h3>
+            <span className="px-4 py-1.5 bg-emerald-50 text-emerald-600 rounded-xl text-xs font-bold uppercase tracking-widest border border-emerald-100">
               Overall: {attendance.stats?.percentage || 0}%
             </span>
           </div>
