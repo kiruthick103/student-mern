@@ -20,12 +20,15 @@ const seedTeacher = require('./utils/seedTeacher');
 
 const app = express();
 const server = http.createServer(app);
+
+// Socket.io setup with optimized CORS
 const io = socketIo(server, {
   cors: {
     origin: process.env.CLIENT_URL || 'http://localhost:3000',
     methods: ['GET', 'POST'],
     credentials: true
-  }
+  },
+  transports: ['websocket', 'polling'] // Optimize connection
 });
 
 // Store io instance for use in controllers
@@ -38,37 +41,57 @@ connectDB();
 seedTeacher();
 
 // Security middleware
-app.use(helmet());
+app.use(helmet({
+  crossOriginResourcePolicy: { policy: "cross-origin" }
+}));
+
 app.use(cors({
   origin: process.env.CLIENT_URL || 'http://localhost:3000',
   credentials: true
 }));
 
-// Rate limiting
+// Optimized rate limiting
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100 // limit each IP to 100 requests per windowMs
+  max: 100, // limit each IP to 100 requests per windowMs
+  message: 'Too many requests from this IP, please try again later.',
+  standardHeaders: true,
+  legacyHeaders: false,
 });
 app.use(limiter);
 
-// Body parsing middleware
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+// Body parsing middleware with optimized limits
+app.use(express.json({ limit: '5mb' }));
+app.use(express.urlencoded({ extended: true, limit: '5mb' }));
 
-// Compression
+// Compression for better performance
 app.use(compression());
 
-// Logging
-app.use(morgan('dev'));
+// Logging (only in development)
+if (process.env.NODE_ENV === 'development') {
+  app.use(morgan('dev'));
+}
 
-// Routes
+// API Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/teacher', teacherRoutes);
 app.use('/api/student', studentRoutes);
 
-// Socket.io connection handling
+// Health check endpoint
+app.get('/health', (req, res) => {
+  res.json({ 
+    status: 'OK', 
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime()
+  });
+});
+
+// Optimized Socket.io connection handling
+const connectedClients = new Map();
+
 io.on('connection', (socket) => {
-  console.log('Client connected:', socket.id);
+  console.log(`Client connected: ${socket.id}`);
+  connectedClients.set(socket.id, { connectedAt: new Date() });
 
   // Join student-specific room for targeted updates
   socket.on('join_student', (studentId) => {
@@ -83,21 +106,23 @@ io.on('connection', (socket) => {
   });
 
   socket.on('disconnect', () => {
-    console.log('Client disconnected:', socket.id);
+    connectedClients.delete(socket.id);
+    console.log(`Client disconnected: ${socket.id}`);
   });
 });
 
-// Health check endpoint
-app.get('/health', (req, res) => {
-  res.json({ status: 'OK', timestamp: new Date().toISOString() });
-});
-
-// Error handling middleware
+// Optimized error handling middleware
 app.use((err, req, res, next) => {
   console.error('Error:', err);
-  res.status(500).json({
-    message: 'Server error',
-    error: process.env.NODE_ENV === 'development' ? err.message : undefined
+  
+  // Don't leak error details in production
+  const error = process.env.NODE_ENV === 'development' 
+    ? err.message 
+    : 'Something went wrong';
+    
+  res.status(err.status || 500).json({
+    message: err.message || 'Server error',
+    error: process.env.NODE_ENV === 'development' ? error : undefined
   });
 });
 
@@ -109,7 +134,16 @@ app.use((req, res) => {
 const PORT = process.env.PORT || 5000;
 
 server.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+  console.log(`🚀 Server running on port ${PORT}`);
+  console.log(`📊 Environment: ${process.env.NODE_ENV || 'development'}`);
+});
+
+// Graceful shutdown
+process.on('SIGTERM', () => {
+  console.log('SIGTERM received, shutting down gracefully');
+  server.close(() => {
+    console.log('Process terminated');
+  });
 });
 
 module.exports = { app, io };

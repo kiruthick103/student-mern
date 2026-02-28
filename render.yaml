@@ -1,0 +1,14 @@
+services:
+  - type: web
+    name: student-ms-backend
+    env: node
+    plan: free
+    buildCommand: cd server && npm install
+    startCommand: cd server && node server.js
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: CLIENT_URL
+        value: https://student-ms-kiru.netlify.app
