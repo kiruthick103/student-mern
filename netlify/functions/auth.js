@@ -1,11 +1,9 @@
-const bcrypt = require('bcryptjs');
-
-// Mock user data for demo
+// Mock user data for demo - passwords are plain text for simplicity in serverless
 const users = [
   {
     _id: 'teacher1',
     email: 'kiruthick3238q@gmail.com',
-    password: '$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', // '123456'
+    password: '123456', // Plain text for demo
     role: 'teacher',
     fullName: 'Kiruthick (Teacher)',
     isActive: true
@@ -13,7 +11,7 @@ const users = [
   {
     _id: 'student1',
     email: 'student@example.com',
-    password: '$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', // '123456'
+    password: '123456', // Plain text for demo
     role: 'student',
     fullName: 'John Doe (Student)',
     isActive: true
@@ -26,7 +24,7 @@ exports.handler = async (event, context) => {
   // Enable CORS
   const headers = {
     'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Headers': 'Content-Type',
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization',
     'Access-Control-Allow-Methods': 'POST, GET, OPTIONS',
     'Content-Type': 'application/json'
   };
@@ -45,10 +43,13 @@ exports.handler = async (event, context) => {
       const body = JSON.parse(event.body);
       const { email, password } = body;
 
+      console.log(`Login attempt for email: ${email}`);
+
       // Find user by email
       const user = users.find(u => u.email === email);
       
       if (!user) {
+        console.log('User not found');
         return {
           statusCode: 401,
           headers,
@@ -56,16 +57,19 @@ exports.handler = async (event, context) => {
         };
       }
 
-      // Verify password
-      const isValidPassword = await bcrypt.compare(password, user.password);
+      // Simple password comparison (plain text for demo)
+      const isValidPassword = user.password === password;
       
       if (!isValidPassword) {
+        console.log('Invalid password');
         return {
           statusCode: 401,
           headers,
           body: JSON.stringify({ message: 'Invalid credentials' })
         };
       }
+
+      console.log('Login successful');
 
       // Generate simple token (in production, use JWT)
       const token = Buffer.from(`${user._id}:${user.email}:${user.role}`).toString('base64');
@@ -85,10 +89,11 @@ exports.handler = async (event, context) => {
       };
 
     } catch (error) {
+      console.error('Login error:', error);
       return {
         statusCode: 500,
         headers,
-        body: JSON.stringify({ message: 'Server error' })
+        body: JSON.stringify({ message: 'Server error', error: error.message })
       };
     }
   }
