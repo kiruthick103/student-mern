@@ -8,7 +8,7 @@ export const SocketProvider = ({ children }) => {
 
   useEffect(() => {
     // Connect to socket server
-    const socketUrl = (import.meta.env.VITE_API_URL || 'http://localhost:5000/api').replace('/api', '');
+    const socketUrl = (import.meta.env.VITE_API_URL || 'https://student-ms-backend.onrender.com/api').replace('/api', '');
     const socket = io(socketUrl);
     socketRef.current = socket;
 
