@@ -8,7 +8,8 @@ export const SocketProvider = ({ children }) => {
 
   useEffect(() => {
     // Connect to socket server
-    const socket = io(process.env.REACT_APP_API_URL?.replace('/api', '') || 'http://localhost:5000');
+    const socketUrl = (import.meta.env.VITE_API_URL || 'http://localhost:5000/api').replace('/api', '');
+    const socket = io(socketUrl);
     socketRef.current = socket;
 
     socket.on('connect', () => {
