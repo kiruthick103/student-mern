@@ -4,7 +4,10 @@
   publish = "client/build"
 
 [build.environment]
-  REACT_APP_API_URL = "https://student-ms-backend.onrender.com"
+  NODE_VERSION = "18"
+
+[functions]
+  directory = "netlify/functions"
 
 [[redirects]]
   from = "/*"
