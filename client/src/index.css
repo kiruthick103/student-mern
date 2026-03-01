@@ -2,78 +2,113 @@
 @tailwind components;
 @tailwind utilities;
 
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&family=Space+Grotesk:wght@300..700&display=swap');
+
 @layer base {
-  html {
-    font-family: 'Inter', system-ui, -apple-system, sans-serif;
-    @apply antialiased scroll-smooth;
+  :root {
+    --background: 210 20% 98%;
+    --foreground: 222 47% 11%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 222 47% 11%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 47% 11%;
+
+    --primary: 221 83% 53%;
+    --primary-foreground: 210 40% 98%;
+
+    --secondary: 210 40% 96%;
+    --secondary-foreground: 222 47% 11%;
+
+    --muted: 210 40% 96%;
+    --muted-foreground: 215 16% 47%;
+
+    --accent: 210 40% 96%;
+    --accent-foreground: 222 47% 11%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 210 40% 98%;
+
+    --success: 142 76% 36%;
+    --success-foreground: 210 40% 98%;
+
+    --warning: 38 92% 50%;
+    --warning-foreground: 222 47% 11%;
+
+    --border: 214 32% 91%;
+    --input: 214 32% 91%;
+    --ring: 221 83% 53%;
+
+    --radius: 0.625rem;
+
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 222 47% 11%;
+    --sidebar-primary: 221 83% 53%;
+    --sidebar-primary-foreground: 210 40% 98%;
+    --sidebar-accent: 210 40% 96%;
+    --sidebar-accent-foreground: 222 47% 11%;
+    --sidebar-border: 214 32% 91%;
+    --sidebar-ring: 221 83% 53%;
+  }
+
+  .dark {
+    --background: 222 47% 6%;
+    --foreground: 210 40% 98%;
+
+    --card: 222 47% 9%;
+    --card-foreground: 210 40% 98%;
+
+    --popover: 222 47% 9%;
+    --popover-foreground: 210 40% 98%;
+
+    --primary: 221 83% 53%;
+    --primary-foreground: 210 40% 98%;
+
+    --secondary: 217 33% 17%;
+    --secondary-foreground: 210 40% 98%;
+
+    --muted: 217 33% 17%;
+    --muted-foreground: 215 20% 65%;
+
+    --accent: 217 33% 17%;
+    --accent-foreground: 210 40% 98%;
+
+    --destructive: 0 63% 31%;
+    --destructive-foreground: 210 40% 98%;
+
+    --success: 142 76% 36%;
+    --success-foreground: 210 40% 98%;
+
+    --warning: 38 92% 50%;
+    --warning-foreground: 210 40% 98%;
+
+    --border: 217 33% 17%;
+    --input: 217 33% 17%;
+    --ring: 224 76% 48%;
+
+    --sidebar-background: 222 47% 9%;
+    --sidebar-foreground: 210 40% 98%;
+    --sidebar-primary: 221 83% 53%;
+    --sidebar-primary-foreground: 210 40% 98%;
+    --sidebar-accent: 217 33% 17%;
+    --sidebar-accent-foreground: 210 40% 98%;
+    --sidebar-border: 217 33% 17%;
+    --sidebar-ring: 221 83% 53%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
   }
 
   body {
-    @apply bg-gray-50/30 text-slate-900;
-  }
-}
-
-@layer components {
-  .card {
-    @apply bg-white border border-slate-100 rounded-2xl shadow-sm transition-all duration-300;
+    @apply bg-background text-foreground font-sans antialiased;
+    font-family: 'DM Sans', system-ui, sans-serif;
   }
 
-  .card-hover {
-    @apply hover:shadow-xl hover:shadow-emerald-600/5 hover:border-emerald-100;
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Space Grotesk', system-ui, sans-serif;
   }
-
-  .btn-primary {
-    @apply bg-emerald-600 text-white px-6 py-2.5 rounded-xl font-medium hover:bg-emerald-700 active:scale-[0.98] transition-all duration-200 flex items-center justify-center gap-2;
-  }
-
-  .btn-secondary {
-    @apply bg-white text-emerald-600 border border-emerald-100 px-6 py-2.5 rounded-xl font-medium hover:bg-emerald-50 hover:text-emerald-700 active:scale-[0.98] transition-all duration-200 flex items-center justify-center gap-2;
-  }
-
-  .btn-danger {
-    @apply bg-red-600 text-white px-6 py-2.5 rounded-xl font-medium hover:bg-red-700 active:scale-[0.98] transition-all duration-200 flex items-center justify-center gap-2;
-  }
-
-  .input {
-    @apply w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-4 focus:ring-emerald-600/5 focus:border-emerald-400 transition-all duration-200 placeholder:text-slate-400;
-  }
-
-  .sidebar-link {
-    @apply flex items-center gap-3 px-4 py-3 text-slate-500 hover:text-emerald-600 rounded-xl transition-all duration-200;
-  }
-
-  .sidebar-link.active {
-    @apply bg-emerald-600 text-white shadow-lg shadow-emerald-600/20 font-medium;
-  }
-
-  .badge {
-    @apply px-2.5 py-0.5 rounded-full text-xs font-semibold;
-  }
-
-  .badge-red {
-    @apply bg-red-50 text-red-600;
-  }
-
-  .badge-green {
-    @apply bg-emerald-50 text-emerald-600;
-  }
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-
-  to {
-    opacity: 1;
-  }
-}
-
-.animate-fade-in {
-  animation: fadeIn 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
-}
-
-.modal-content {
-  @apply bg-white rounded-3xl shadow-2xl border border-slate-100;
-  animation: fadeIn 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
 }
